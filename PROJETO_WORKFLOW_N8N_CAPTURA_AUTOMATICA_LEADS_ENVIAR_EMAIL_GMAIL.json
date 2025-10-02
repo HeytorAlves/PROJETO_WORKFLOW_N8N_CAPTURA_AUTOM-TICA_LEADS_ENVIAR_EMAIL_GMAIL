@@ -1,0 +1,249 @@
+{
+  "name": "GeracaoDeLeads",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Teste Masterclass Form",
+        "formDescription": "Preencha esse formulário para participar da masterclass",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nome"
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Budget",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "0-R$1.000+"
+                  },
+                  {
+                    "option": "0-R$999,99"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Mensagem"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        -208
+      ],
+      "id": "8e931151-c78a-4a2c-8d10-722c9610b47a",
+      "name": "On form submission",
+      "webhookId": "5af60f64-22c2-42ab-9e06-95e66c33cd91"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1n8H8CQ3Njg5lBa0CK4jBh7SOfis1EUU-k8Tz9hWPHA4/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1n8H8CQ3Njg5lBa0CK4jBh7SOfis1EUU-k8Tz9hWPHA4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nome": "={{ $json.Nome }}",
+            "Email": "={{ $json.Email }}",
+            "Budget": "={{ $json.Budget }}",
+            "Mensagem": "={{ $json.Mensagem }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nome",
+              "displayName": "Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mensagem",
+              "displayName": "Mensagem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "aa1353f2-8d1e-4294-bda5-4b19eb6543cd",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QWbfgJmQ3cKM7yba",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Informações do lead:\n\nNome: {{ $json.Nome }}\nBudget: {{ $json.Budget }}\nMensagem: {{ $json.Mensagem }}",
+        "options": {
+          "systemMessage": "=Você irá receber as informações de um lead que preencheu nosso formulário de aplicação.\n\nVocê deve criar uma mensagem personalizada para esse lead de acordo com o seu budget.\n\nSe o budget for a cima de $10000, você deve criar uma mensagem personalizada, considerando a mensagem que ela enviou no formulário, convidando ele para a Masterclass e agradecendo.\n\nSe o budget for abaixo de $53000, você deve gentilmente descartá-lo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        0
+      ],
+      "id": "41be7f89-5561-450a-9bbc-037ca117c5c0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        368,
+        144
+      ],
+      "id": "cbc85427-cbe0-4bd1-8f93-cb022e28bfac",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Dr6yQMDyIDzmm3GW",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "MasterClass",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "00504ff4-fbde-4248-ac2b-69ba8df28cb2",
+      "name": "Send a message",
+      "webhookId": "681db1d5-30aa-498f-8c49-445bd1533b18",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gsttdEZaZs9xsZez",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ef8f96b1-8177-465f-a273-7a9937eccc8f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5befcfaa85b864da207651bcf63cc906c722ece4fea9dc458c81aa3ea6ba9cd3"
+  },
+  "id": "ht2pN76jEZlvd2EZ",
+  "tags": []
+}
